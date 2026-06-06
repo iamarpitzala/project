@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<!--
+  Toastmasters Meeting Poster – Story / Status (9:16) Template
+  1080 × 1920 px — Instagram Stories, WhatsApp Status, full-screen vertical.
+  Variables in {{double_braces}} are substituted by the React component at runtime.
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Toastmasters Story – {{clubName}}</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary:   #004165;
+      --accent:    #772432;
+      --highlight: #F2DF74;
+      --body-bg:   #FAF9F6;
+      --text:      #004165;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: #9e9e9e;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    /*
+      9:16 ratio → 1080 × 1920 px.
+      Preview rendered at half-scale via React, but the HTML itself is authored
+      at full logical dimensions so it previews correctly inside an iframe too.
+      We use 540 × 960 for the standalone HTML preview (still 9:16).
+    */
+    .poster {
+      width: 540px;
+      height: 960px;
+      background: var(--body-bg);
+      box-shadow: 2px 2px 8px 2px rgba(0,0,0,.45);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── Tall header: stacked, centred ──────────────────────── */
+    .header {
+      background: var(--primary);
+      color: #fff;
+      padding: 36px 32px 28px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      border-bottom: 5px solid var(--highlight);
+      flex-shrink: 0;
+    }
+
+    .tm-logo { width: 72px; height: 72px; margin-bottom: 14px; object-fit: contain; }
+
+    .club-name {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 900;
+      font-size: 26px;
+      color: #fff;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .club-tagline {
+      display: inline-block;
+      background: var(--highlight);
+      color: var(--primary);
+      font-family: 'Outfit', sans-serif;
+      font-weight: 900;
+      font-size: 8px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      padding: 4px 14px;
+      border-radius: 4px;
+      margin-bottom: 8px;
+    }
+
+    .club-details-line {
+      font-size: 9px;
+      font-weight: 500;
+      opacity: .7;
+      letter-spacing: 0.03em;
+    }
+
+    /* ─── Gold strip ─────────────────────────────────────────── */
+    .accent-strip { height: 6px; background: var(--highlight); flex-shrink: 0; }
+
+    /* ─── Body ── tall flow ──────────────────────────────────── */
+    .body {
+      flex: 1;
+      padding: 28px 32px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 0;
+    }
+
+    /* Role block */
+    .role-block {
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .role-title {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 800;
+      font-size: 22px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text);
+      line-height: 1.15;
+    }
+
+    .role-divider {
+      width: 48px;
+      height: 3px;
+      background: var(--accent);
+      margin: 10px auto;
+      border-radius: 2px;
+    }
+
+    .meeting-number {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 900;
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    /* Photo — centred, square-ish */
+    .photo-wrap {
+      display: flex;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .photo-frame {
+      width: 240px;
+      height: 252px;   /* slight portrait crop */
+      border: 4px solid var(--highlight);
+      border-radius: 20px;
+      overflow: hidden;
+      background: #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .photo-frame img {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform-origin: center center;
+    }
+
+    .photo-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: #94a3b8;
+      gap: 8px;
+      padding: 20px;
+      text-align: center;
+    }
+    .photo-placeholder p { font-size: 10px; font-weight: 600; }
+
+    /* Speaker text */
+    .speaker-block { text-align: center; flex-shrink: 0; }
+
+    .speaker-name {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 900;
+      font-size: 26px;
+      text-transform: uppercase;
+      color: var(--text);
+      line-height: 1.1;
+      margin-bottom: 10px;
+    }
+
+    .theme-label {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 900;
+      font-size: 8px;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--accent);
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .theme-title {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 800;
+      font-size: 15px;
+      text-transform: uppercase;
+      line-height: 1.35;
+      color: var(--text);
+    }
+
+    /* Bottom meta + lectern */
+    .bottom-grid {
+      display: grid;
+      grid-template-columns: 1fr 90px;
+      gap: 14px;
+      align-items: flex-end;
+      border-top: 1px solid #e2e8f0;
+      padding-top: 16px;
+      flex-shrink: 0;
+    }
+
+    .meta-items { display: flex; flex-direction: column; gap: 12px; }
+
+    .meta-item { display: flex; gap: 10px; align-items: flex-start; }
+
+    .meta-icon {
+      color: var(--text);
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .meta-icon svg { width: 14px; height: 14px; }
+    .meta-icon.accent { color: var(--accent); }
+
+    .meta-text { display: flex; flex-direction: column; }
+
+    .meta-label {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 900;
+      font-size: 9px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+    .meta-label.accent { color: var(--accent); }
+
+    .meta-value {
+      font-size: 11px;
+      font-weight: 500;
+      color: #334155;
+      line-height: 1.4;
+    }
+
+    .lectern-wrap {
+      position: relative;
+      display: flex;
+      align-items: flex-end;
+    }
+    .lectern-wrap svg { width: 100%; }
+
+    .qr-img {
+      position: absolute;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 34px;
+      height: 34px;
+      border-radius: 3px;
+    }
+
+    /* ─── Footer ─────────────────────────────────────────────── */
+    footer {
+      background: var(--primary);
+      color: #fff;
+      padding: 14px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 9px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .footer-item { display: flex; align-items: center; gap: 5px; color: #e2e8f0; }
+    .footer-item svg { width: 12px; height: 12px; }
+    .footer-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--highlight); }
+  </style>
+</head>
+<body>
+
+<article class="poster">
+
+  <!-- TALL HEADER -->
+  <header class="header">
+    <img src="{{tmLogoUrl}}" alt="Toastmasters International" class="tm-logo" />
+
+    <div class="club-name">{{clubName}}</div>
+    <div class="club-tagline">{{clubTagline}}</div>
+    <div class="club-details-line">{{clubDetails}} &nbsp;|&nbsp; Since {{sinceYear}}</div>
+  </header>
+
+  <div class="accent-strip"></div>
+
+  <!-- BODY -->
+  <div class="body">
+
+    <div class="role-block">
+      <h1 class="role-title">{{roleTitle}}</h1>
+      <div class="role-divider"></div>
+      <p class="meeting-number">Meeting #{{meetingNumber}}</p>
+    </div>
+
+    <div class="photo-wrap">
+      <div class="photo-frame">
+        <img src="{{speakerImage}}" alt="{{speakerName}}"
+             style="transform: {{speakerImageTransform}};"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+        <div class="photo-placeholder" style="display:none">
+          <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" width="48" height="48">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0a9 9 0 10-11.963 0m11.963 0A8.966 8.966 0 0112 21a8.966 8.966 0 01-5.982-2.275M15 9.75a3 3 0 11-6 0 3 3 0 016 0z"/>
+          </svg>
+          <p>No Photo Uploaded</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="speaker-block">
+      <h2 class="speaker-name">{{speakerName}}</h2>
+      <span class="theme-label">{{themeLabel}}</span>
+      <p class="theme-title">{{themeTitle}}</p>
+    </div>
+
+    <div class="bottom-grid">
+      <div class="meta-items">
+        <div class="meta-item">
+          <span class="meta-icon">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"/>
+            </svg>
+          </span>
+          <div class="meta-text">
+            <span class="meta-label">{{venueLabel}}</span>
+            <span class="meta-value">{{venueInline}}</span>
+          </div>
+        </div>
+        <div class="meta-item">
+          <span class="meta-icon accent">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"/>
+            </svg>
+          </span>
+          <div class="meta-text">
+            <span class="meta-label accent">{{dateText}}</span>
+            <span class="meta-value">{{timeText}}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="lectern-wrap">
+        <svg viewBox="0 0 160 200" style="filter:drop-shadow(1px 2px 3px rgba(0,0,0,.3))">
+          <path d="M115,40 Q122,22 108,18" fill="none" stroke="#2D3748" stroke-width="2.5" stroke-linecap="round"/>
+          <path d="M115,40 L118,52" fill="none" stroke="#2D3748" stroke-width="3.5"/>
+          <rect x="104" y="14" width="7" height="5" rx="1.5" fill="#1A202C" transform="rotate(15,107,16)"/>
+          <path d="M20,53 L130,53 L120,44 L30,44 Z" fill="#004165"/>
+          <path d="M22,53 L128,53 L122,76 L28,76 Z" fill="#004165"/>
+          <text x="75" y="69" text-anchor="middle" fill="#FFFFFF" font-weight="bold" font-size="11" letter-spacing="1" font-family="Outfit,sans-serif">{{lecternText}}</text>
+          <path d="M35,76 L115,76 L110,180 L40,180 Z" fill="#772432"/>
+          <path d="M28,76 L35,76 L40,180 L30,180 Z" fill="#004165" opacity=".9"/>
+          <path d="M115,76 L122,76 L120,180 L110,180 Z" fill="#004165" opacity=".9"/>
+          <path d="M15,180 L135,180 L130,195 L20,195 Z" fill="#004165"/>
+          <rect x="42" y="84" width="66" height="66" rx="3" fill="#FFFFFF" stroke="#004165" stroke-width="1.5"/>
+        </svg>
+        <img class="qr-img" src="{{qrCodeUrl}}" alt="RSVP QR" onerror="this.style.display='none'" />
+      </div>
+    </div>
+
+  </div><!-- /body -->
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-item">
+      <svg fill="none" stroke="#fde68a" stroke-width="1.5" viewBox="0 0 24 24">
+        <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/>
+        <circle cx="17.5" cy="6.5" r="1" fill="#fde68a" stroke="none"/>
+      </svg>
+      <span>@{{instagram}}</span>
+    </div>
+    <div class="footer-dot"></div>
+    <div class="footer-item">
+      <svg fill="none" stroke="#fde68a" stroke-width="1.5" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M2 12h20M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/>
+      </svg>
+      <span>{{website}}</span>
+    </div>
+  </footer>
+
+</article>
+</body>
+</html>

@@ -4,10 +4,21 @@
  */
 
 import { useState, useEffect, useRef } from 'react';
-import { Sparkles, SlidersHorizontal, Image as ImageIcon, RotateCcw, Monitor, RefreshCw, Smartphone } from 'lucide-react';
+import { Sparkles, RotateCcw, Monitor } from 'lucide-react';
 import { PosterData, PosterSize, BrandTheme } from './types';
 import { PosterPreview } from './components/PosterPreview';
 import { PosterControls } from './components/PosterControls';
+
+// Raw HTML templates — same ones used by PosterPreview iframe
+import portraitTemplate  from './poster-template.html?raw';
+import squareTemplate    from './poster-template-square.html?raw';
+import storyTemplate     from './poster-template-story.html?raw';
+import landscapeTemplate from './poster-template-landscape.html?raw';
+
+// Logo as base64 data-URI so it works in both the iframe and the export canvas
+import tmLogoRaw from '../assets/TMLogo.svg?raw';
+const tmLogoUrl = `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(tmLogoRaw)))}`;
+
 
 const DEFAULT_AVATAR = `data:image/svg+xml;utf8,${encodeURIComponent(`
 <svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
@@ -246,45 +257,105 @@ export default function App() {
     reader.readAsDataURL(file);
   };
 
-  // Convert exact DOM layouts to PNG or JPEG with high device ratios
-  const handleExport = async (format: 'png' | 'jpeg', scaleMultiplier: number) => {
-    const elementId = selectedSize.aspectRatio === '4:5' ? 'poster-canvas-portrait' :
-                      selectedSize.aspectRatio === '1:1' ? 'poster-canvas-square' :
-                      selectedSize.aspectRatio === '9:16' ? 'poster-canvas-story' :
-                      'poster-canvas-landscape';
-    
-    const node = document.getElementById(elementId);
-    if (!node) {
-      alert("Error: Rendering workspace not found. Please try again.");
-      return;
-    }
+  // Pick the right raw template for the active aspect ratio
+  const getTemplateForSize = (size: PosterSize): string => {
+    if (size.aspectRatio === '4:5')  return portraitTemplate;
+    if (size.aspectRatio === '1:1')  return squareTemplate;
+    if (size.aspectRatio === '9:16') return storyTemplate;
+    return landscapeTemplate;
+  };
 
+  // Fill {{tokens}} in the template with live data (mirrors PosterPreview logic)
+  const buildHtml = (template: string): string => {
+    const venueInline = data.venueText.replace(/\n/g, ', ');
+    const venueLines  = data.venueText.split('\n').filter(Boolean)
+      .map((l) => `<span>${l}</span>`).join('\n');
+    const qrSrc = qrCodeBase64 ||
+      (data.qrUrl ? `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(data.qrUrl)}` : '');
+
+    const speakerImageTransform =
+      `scale(${data.speakerImageScale}) translate(${data.speakerImageX}%, ${data.speakerImageY}%)`;
+
+    const vars: Record<string, string> = {
+      clubName: data.clubName, clubTagline: data.clubTagline,
+      clubDetails: data.clubDetails, sinceYear: data.sinceYear,
+      roleTitle: data.roleTitle, meetingNumber: data.meetingNumber,
+      speakerName: data.speakerName, speakerImage: data.speakerImage || '',
+      speakerImageTransform,
+      themeLabel: data.themeLabel, themeTitle: data.themeTitle,
+      venueLabel: data.venueLabel, venueTextFormatted: venueLines,
+      venueInline, dateText: data.dateText, timeText: data.timeText,
+      lecternText: data.lecternText.toUpperCase(), qrCodeUrl: qrSrc,
+      instagram: data.instagram, website: data.website, phone: data.phone,
+      tmLogoUrl,
+    };
+
+    // ① Patch SVG colours on the raw template BEFORE substituting vars,
+    //    so the logo base64 data-URI is never touched by these regexes.
+    const themeOverride = `<style id="theme-override">:root{--primary:${selectedTheme.primary};--accent:${selectedTheme.accent};--highlight:${selectedTheme.highlight};--body-bg:${selectedTheme.bodyBg};--text:${selectedTheme.textColor};}</style>`;
+    let patched = template
+      .replace(/fill="#004165"/g,   `fill="${selectedTheme.primary}"`)
+      .replace(/fill="#772432"/g,   `fill="${selectedTheme.accent}"`)
+      .replace(/stroke="#004165"/g, `stroke="${selectedTheme.primary}"`)
+      .replace(/stroke="#772432"/g, `stroke="${selectedTheme.accent}"`)
+      .replace(/fill="#F2DF74"/g,   `fill="${selectedTheme.highlight}"`)
+      .replace(/stroke="#F2DF74"/g, `stroke="${selectedTheme.highlight}"`)
+      .replace('</head>', `${themeOverride}\n</head>`);
+
+    // ② Now substitute {{token}} values (including the large logo data-URI)
+    return patched.replace(/\{\{(\w+)\}\}/g, (_, k) => vars[k] ?? '');
+  };
+
+  // Export: parse filled HTML into an off-screen div, capture with html-to-image, clean up
+  const handleExport = async (format: 'png' | 'jpeg', scaleMultiplier: number) => {
     setIsExporting(true);
+    let container: HTMLDivElement | null = null;
 
     try {
-      // Import html-to-image dynamically to ensure safe compilation execution blocks
       const htmlToImage = await import('html-to-image');
-      
+      const filledHtml  = buildHtml(getTemplateForSize(selectedSize));
+
+      // Parse the full HTML document and extract just the <body> contents
+      const parser  = new DOMParser();
+      const doc     = parser.parseFromString(filledHtml, 'text/html');
+      const bodyHtml = doc.body.innerHTML;
+
+      // Copy all <style> tags from the parsed document's <head> into a single block
+      const styles = Array.from(doc.head.querySelectorAll('style'))
+        .map((s) => s.outerHTML).join('\n');
+
+      // Build a self-contained off-screen container at actual export dimensions
+      container = document.createElement('div');
+      container.style.cssText = [
+        `position:fixed`, `top:-99999px`, `left:-99999px`,
+        `width:${selectedSize.width}px`, `height:${selectedSize.height}px`,
+        `overflow:hidden`, `z-index:-1`,
+      ].join(';');
+
+      // Inject styles into a shadow root so they don't bleed into the main page
+      const shadow = container.attachShadow({ mode: 'open' });
+      shadow.innerHTML = `${styles}<div id="poster-root" style="width:${selectedSize.width}px;height:${selectedSize.height}px;overflow:hidden;">${bodyHtml}</div>`;
+
+      document.body.appendChild(container);
+
+      // Give the browser one frame to layout before capturing
+      await new Promise((r) => requestAnimationFrame(r));
+      await new Promise((r) => setTimeout(r, 150));
+
+      const posterRoot = shadow.getElementById('poster-root') as HTMLElement;
+
       const options = {
         pixelRatio: scaleMultiplier,
         quality: 0.95,
         cacheBust: true,
-        style: {
-          transform: 'scale(1)',
-          transformOrigin: 'top left',
-          width: `${selectedSize.width}px`,
-          height: `${selectedSize.height}px`,
-        }
+        width:  selectedSize.width,
+        height: selectedSize.height,
       };
 
-      let url = '';
-      if (format === 'png') {
-        url = await htmlToImage.toPng(node, options);
-      } else {
-        url = await htmlToImage.toJpeg(node, options);
-      }
+      const url = format === 'png'
+        ? await htmlToImage.toPng(posterRoot, options)
+        : await htmlToImage.toJpeg(posterRoot, options);
 
-      // Safe anchor simulation
       const link = document.createElement('a');
       const cleanName = data.speakerName.trim().replace(/\s+/g, '_') || 'Toastmaster_Speaker';
       link.download = `${cleanName}_Poster_${selectedSize.aspectRatio.replace(':', 'x')}.${format}`;
@@ -293,9 +364,10 @@ export default function App() {
       link.click();
       document.body.removeChild(link);
     } catch (error) {
-      console.error("Export failure occurred: ", error);
-      alert("An error occurred during high-quality export. Please verify the photo size and format.");
+      console.error('Export failure:', error);
+      alert('Export failed. Please check the browser console for details.');
     } finally {
+      if (container) document.body.removeChild(container);
       setIsExporting(false);
     }
   };
@@ -369,17 +441,15 @@ export default function App() {
               ref={previewContainerRef}
               className="flex-1 flex items-center justify-center overflow-auto min-h-0 bg-transparent rounded-lg"
             >
-              {/* Actual structured live render template */}
-              <div className="relative transform-gpu">
-                <PosterPreview
-                  data={data}
-                  theme={selectedTheme}
-                  width={selectedSize.width}
-                  height={selectedSize.height}
-                  scale={previewScale}
-                  qrCodeBase64={qrCodeBase64}
-                />
-              </div>
+              {/* Wrapper lets flex centering work with scaled poster */}
+              <PosterPreview
+                data={data}
+                theme={selectedTheme}
+                width={selectedSize.width}
+                height={selectedSize.height}
+                scale={previewScale}
+                qrCodeBase64={qrCodeBase64}
+              />
             </div>
 
             {/* CORE STATUS MATRICES PANEL */}

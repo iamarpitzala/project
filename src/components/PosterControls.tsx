@@ -290,56 +290,87 @@ export const PosterControls: React.FC<PosterControlsProps> = ({
 
                     {/* Cropping sliders setup */}
                     {data.speakerImage && (
-                      <div className="mt-3.5 pt-3.5 border-t border-white/10 space-y-2.5">
+                      <div className="mt-3.5 pt-3.5 border-t border-white/10 space-y-3">
                         <span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest block mb-1">Image Fine-Tuning</span>
-                        
+
+                        {/* Zoom */}
                         <div>
-                          <div className="flex justify-between text-[10px] font-bold text-white/60 mb-1">
+                          <div className="flex justify-between text-[10px] font-bold text-white/60 mb-1.5">
                             <span>Zoom Magnify</span>
-                            <span className="text-indigo-400">{data.speakerImageScale.toFixed(1)}x</span>
                           </div>
-                          <input
-                            type="range"
-                            min="1.0"
-                            max="3.0"
-                            step="0.1"
-                            value={data.speakerImageScale}
-                            onChange={(e) => handleFieldChange('speakerImageScale', parseFloat(e.target.value))}
-                            className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer focus:outline-none accent-indigo-500"
-                          />
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="range"
+                              min="1.0" max="3.0" step="0.1"
+                              value={data.speakerImageScale}
+                              onChange={(e) => handleFieldChange('speakerImageScale', parseFloat(e.target.value))}
+                              className="flex-1 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer focus:outline-none accent-indigo-500"
+                            />
+                            <input
+                              type="number"
+                              min="1.0" max="3.0" step="0.1"
+                              value={data.speakerImageScale}
+                              onChange={(e) => {
+                                const v = parseFloat(e.target.value);
+                                if (!isNaN(v)) handleFieldChange('speakerImageScale', Math.min(3, Math.max(1, v)));
+                              }}
+                              className="w-14 bg-black/40 border border-white/20 text-indigo-400 text-[11px] font-bold rounded px-2 py-1 focus:border-indigo-500 outline-none text-center"
+                            />
+                          </div>
                         </div>
 
+                        {/* X offset */}
                         <div>
-                          <div className="flex justify-between text-[10px] font-bold text-white/60 mb-1">
-                            <span>X Translation Offset</span>
-                            <span className="text-indigo-400">{data.speakerImageX > 0 ? `+${data.speakerImageX}` : data.speakerImageX}%</span>
+                          <div className="flex justify-between text-[10px] font-bold text-white/60 mb-1.5">
+                            <span>X Offset</span>
                           </div>
-                          <input
-                            type="range"
-                            min="-100"
-                            max="100"
-                            step="1"
-                            value={data.speakerImageX}
-                            onChange={(e) => handleFieldChange('speakerImageX', parseInt(e.target.value))}
-                            className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer focus:outline-none accent-indigo-500"
-                          />
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="range"
+                              min="-100" max="100" step="1"
+                              value={data.speakerImageX}
+                              onChange={(e) => handleFieldChange('speakerImageX', parseInt(e.target.value))}
+                              className="flex-1 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer focus:outline-none accent-indigo-500"
+                            />
+                            <input
+                              type="number"
+                              min="-100" max="100" step="1"
+                              value={data.speakerImageX}
+                              onChange={(e) => {
+                                const v = parseInt(e.target.value);
+                                if (!isNaN(v)) handleFieldChange('speakerImageX', Math.min(100, Math.max(-100, v)));
+                              }}
+                              className="w-14 bg-black/40 border border-white/20 text-indigo-400 text-[11px] font-bold rounded px-2 py-1 focus:border-indigo-500 outline-none text-center"
+                            />
+                          </div>
                         </div>
 
+                        {/* Y offset */}
                         <div>
-                          <div className="flex justify-between text-[10px] font-bold text-white/60 mb-1">
-                            <span>Y Translation Offset</span>
-                            <span className="text-indigo-400">{data.speakerImageY > 0 ? `+${data.speakerImageY}` : data.speakerImageY}%</span>
+                          <div className="flex justify-between text-[10px] font-bold text-white/60 mb-1.5">
+                            <span>Y Offset</span>
                           </div>
-                          <input
-                            type="range"
-                            min="-100"
-                            max="100"
-                            step="1"
-                            value={data.speakerImageY}
-                            onChange={(e) => handleFieldChange('speakerImageY', parseInt(e.target.value))}
-                            className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer focus:outline-none accent-indigo-500"
-                          />
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="range"
+                              min="-100" max="100" step="1"
+                              value={data.speakerImageY}
+                              onChange={(e) => handleFieldChange('speakerImageY', parseInt(e.target.value))}
+                              className="flex-1 h-1 bg-white/10 rounded-lg appearance-none cursor-pointer focus:outline-none accent-indigo-500"
+                            />
+                            <input
+                              type="number"
+                              min="-100" max="100" step="1"
+                              value={data.speakerImageY}
+                              onChange={(e) => {
+                                const v = parseInt(e.target.value);
+                                if (!isNaN(v)) handleFieldChange('speakerImageY', Math.min(100, Math.max(-100, v)));
+                              }}
+                              className="w-14 bg-black/40 border border-white/20 text-indigo-400 text-[11px] font-bold rounded px-2 py-1 focus:border-indigo-500 outline-none text-center"
+                            />
+                          </div>
                         </div>
+
                       </div>
                     )}
                   </div>
