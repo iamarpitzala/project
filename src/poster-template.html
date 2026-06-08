@@ -241,14 +241,14 @@
       .speaker-details {
         display: flex;
         flex-direction: column;
-        justify-content: center;
-        padding: 8px 0;
+        justify-content: flex-start;
+        padding: 16px 0 8px 0;
       }
 
       .speaker-name {
         font-family: "Montserrat", sans-serif;
         font-weight: 900;
-        font-size: 28px;
+        font-size: 30px;
         letter-spacing: -0.01em;
         text-transform: uppercase;
         color: var(--text);
@@ -259,7 +259,7 @@
       .theme-label {
         font-family: "Outfit", sans-serif;
         font-weight: 900;
-        font-size: 10px;
+        font-size: 14px;
         letter-spacing: 0.28em;
         text-transform: uppercase;
         color: var(--accent);
@@ -268,7 +268,7 @@
       .theme-title {
         font-family: "Montserrat", sans-serif;
         font-weight: 800;
-        font-size: 18px;
+        font-size: 32px;
         text-transform: uppercase;
         letter-spacing: 0.02em;
         line-height: 1.3;
@@ -347,7 +347,7 @@
       .meta-text-label {
         font-family: "Outfit", sans-serif;
         font-weight: 900;
-        font-size: 11px;
+        font-size: 18px;
         letter-spacing: 0.18em;
         text-transform: uppercase;
         color: var(--text);
@@ -359,8 +359,8 @@
       }
 
       .meta-text-value {
-        font-size: 12px;
-        font-weight: 500;
+        font-size: 20px;
+        font-weight: 600;
         letter-spacing: 0.02em;
         color: #334155;
         line-height: 1.45;
@@ -368,7 +368,7 @@
 
       /* ── Lectern / QR SVG ───────── */
       .lectern-wrap {
-        width: 145px;
+        width: 170px;
         position: relative;
         display: flex;
         align-items: flex-end;
@@ -543,8 +543,8 @@
                 </svg>
               </div>
               <div class="meta-text">
-                <span class="meta-text-label">{{venueLabel}}</span>
-                <span class="meta-text-value">{{venueTextFormatted}}</span>
+                <span class="meta-text-label">venue</span>
+                <span class="meta-text-value">GIFT City Fire Station, Training Room, First Floor, GIFT City.</span>
               </div>
             </div>
 
@@ -567,7 +567,7 @@
               </div>
               <div class="meta-text">
                 <span class="meta-text-label accent">{{dateText}}</span>
-                <span class="meta-text-value">{{timeText}}</span>
+                <span class="meta-text-value">10:30 AM to 12:30 PM</span>
               </div>
             </div>
           </div>
